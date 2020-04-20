@@ -96,16 +96,16 @@ config file:
 ```scala
 import com.github.pxsdirac.ccp.core.parser.NameMapping
 
-  implicit val subSettings1NameMapping = NameMapping.fromPF[SubSettings1] {
-    case "p1" => "p1MappedKey"
-  }
+implicit val subSettings1NameMapping = NameMapping.fromPF[SubSettings1] {
+case "p1" => "p1MappedKey"
+}
 
-  val config = ConfigFactory.defaultApplication()
+val config = ConfigFactory.defaultApplication()
 
-  import com.github.pxsdirac.ccp.core._
-  import com.github.pxsdirac.ccp.typesafe.config._
-  val settings = parse[Settings](config)
-  println(settings)
+import com.github.pxsdirac.ccp.core._
+import com.github.pxsdirac.ccp.typesafe.config._
+val settings = parse[Settings](config)
+println(settings)
 ```
 ### self defined parse rule
 [demo for this section](examples/src/main/scala/typesafe/config/SelfDefinedParserExample.scala)
@@ -134,27 +134,27 @@ config file:
 ```  
 ```scala
 import com.github.pxsdirac.ccp.core.parser.KeyValueParser
-  import com.github.pxsdirac.ccp.typesafe.config.Implicits
-  import com.typesafe.config.Config
+import com.github.pxsdirac.ccp.typesafe.config.Implicits
+import com.typesafe.config.Config
 
-  import scala.concurrent.duration._
-  import scala.util.Try
+import scala.concurrent.duration._
+import scala.util.Try
 
-  object HighPriority extends Implicits {
-    implicit val finiteDurationKeyValueParser
-      : KeyValueParser[Config, FiniteDuration] =
-      new KeyValueParser[Config, FiniteDuration] {
-        override def parseValueByKey(data: Config,
-                                     key: String): Try[FiniteDuration] = Try {
-          data.getInt(key).seconds
-        }
-      }
+object HighPriority extends Implicits {
+implicit val finiteDurationKeyValueParser
+  : KeyValueParser[Config, FiniteDuration] =
+  new KeyValueParser[Config, FiniteDuration] {
+    override def parseValueByKey(data: Config,
+                                 key: String): Try[FiniteDuration] = Try {
+      data.getInt(key).seconds
+    }
   }
+}
 
-  import com.github.pxsdirac.ccp.core._
-  import HighPriority._
-  val config = ConfigFactory.defaultApplication()
+import com.github.pxsdirac.ccp.core._
+import HighPriority._
+val config = ConfigFactory.defaultApplication()
 
-  val settings = parse[Settings](config)
-  println(settings)
+val settings = parse[Settings](config)
+println(settings)
 ```
