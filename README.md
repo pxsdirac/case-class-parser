@@ -1,20 +1,29 @@
 # case-class-parser
 a type safe library to parse some kv-like data to scala case class
 
-# import this lib
-not upload to maven repo yet, you should publish it manually yet. 
+# supported data source and import
+> note: this repo did not upload to maven central yet, so you should clone it and publish by your self.
 ```
-git clone git@github.com:pxsdirac/case-class-parser.git
-cd case-class-parser
-sbt publishLocal
-```
-then you can import it to your project by 
+$ git clone git@github.com:pxsdirac/case-class-parser.git
+$ cd case-class-parser
+$ sbt publishLocal
+```  
+here are the supported data source:
+* [Typesafe Config](https://github.com/lightbend/config)
 ```
 libraryDependencies += "com.github.pxsdirac" %% "case-class-parser-typesafe-config" % "0.1.0-SNAPSHOT"
 ```
+# supported features
+* default field value support
+> parsed case class will use its default value for some fields if it is not provided. 
+* name mapping between filed name of case class and key in the data source
+> the filed name in the case class maybe different from the key in the data source, you can provide a name mapping to add your own role for that.
+* self defined parser rule
+> sometimes, the default behaviors is not good enough for your requirement. you can implement your own parser for some target type.
 
 # usage
-## basic usage
+### basic usage
+[demo for this section](examples/src/main/scala/typesafe/config/BasicExample.scala)
 
 the config file `application.conf`
 ```hocon
@@ -60,7 +69,8 @@ the result of settings is
 Success(Settings(SubSettings1(Some(1),1 second,true),List(SubSettings2(None,2,1.0), SubSettings2(Some(hello),1,2.0))))
 ```
 
-## with name mapping
+### with name mapping
+[demo for this section](examples/src/main/scala/typesafe/config/NameMappingExample.scala)
 
 the key in config file should be the field name of case class with default behavior, but you can use your own key by name mapping.
 config file:
@@ -97,7 +107,9 @@ import com.github.pxsdirac.ccp.core.parser.NameMapping
   val settings = parse[Settings](config)
   println(settings)
 ```
-## self defined parse rule
+### self defined parse rule
+[demo for this section](examples/src/main/scala/typesafe/config/SelfDefinedParserExample.scala)
+
 the parse rule is auto derived, but you can define your own parse rule by adding implicit parser with higher priority.
 
 config file:

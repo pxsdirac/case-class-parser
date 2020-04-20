@@ -1,7 +1,5 @@
 package com.github.pxsdirac.ccp.core.parser
 
-import shapeless.LabelledGeneric
-
 /**
   * some time, the key in data source make be different from the label name in case class.
   * you can provide a nameMapping to have a conversion between them
