@@ -19,11 +19,8 @@ trait NameMapping[A] {
 
 object NameMapping {
 
-  def fromPF[A] = new {
-    def apply[R](pf: PartialFunction[String, String])(implicit generic: LabelledGeneric.Aux[A, R]): NameMapping[R] = {
-      (name: String) =>
-        pf.applyOrElse[String, String](name, _ => name)
-    }
+  def fromPF[A](pf: PartialFunction[String, String]): NameMapping[A] = { (name: String) =>
+    pf.applyOrElse[String, String](name, _ => name)
   }
 
   def empty[A]: NameMapping[A] = (name: String) => name

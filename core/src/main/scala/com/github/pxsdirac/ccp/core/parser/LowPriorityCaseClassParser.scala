@@ -10,19 +10,17 @@ import scala.util.{Failure, Success}
   * provide low priority type class derivation for [[CaseClassParser]]
   */
 trait LowPriorityCaseClassParser {
-  type WithDefaultValue[D, A] = Map[String, Any] => CaseClassParser[D, A]
+  type WithDefaultValueAndNameMapping[D, A] = (Map[String, Any], NameMapping[A]) => CaseClassParser[D, A]
 
-  implicit def hNilParser[D]: WithDefaultValue[D, HNil] = _ => _ => Success(HNil)
+  implicit def hNilParser[D]: WithDefaultValueAndNameMapping[D, HNil] = (_, _) => _ => Success(HNil)
 
   implicit def hConsParser[D, K <: Symbol, H, T <: HList](
     implicit witness: Witness.Aux[K],
     typeable: Typeable[H],
     hKeyValueParser: Lazy[KeyValueParser[D, H]],
-    tProductParser: WithDefaultValue[D, T],
-    nameMapping: NameMapping[FieldType[K, H] :: T] = NameMapping.empty[FieldType[K, H] :: T],
-    tNameMapping: NameMapping[T] = NameMapping.empty[T]
-  ): WithDefaultValue[D, FieldType[K, H] :: T] =
-    defaultValueMap =>
+    tProductParser: WithDefaultValueAndNameMapping[D, T]
+  ): WithDefaultValueAndNameMapping[D, FieldType[K, H] :: T] =
+    (defaultValueMap, nameMapping) =>
       data => {
         val name = witness.value.name
         val mappedName = nameMapping.get(name)
@@ -39,7 +37,7 @@ trait LowPriorityCaseClassParser {
               case _       => f // cast should never has exception, if get none here, no default value is set.
             }
         }
-        val tTry = tProductParser(defaultValueMap).parse(data)
+        val tTry = tProductParser(defaultValueMap, NameMapping.fromNameMapping[T](nameMapping)).parse(data)
         for {
           h <- hTry
           t <- tTry
@@ -53,12 +51,13 @@ trait LowPriorityCaseClassParser {
     defaultAux: Default.Aux[A, R1],
     labelledGeneric: LabelledGeneric.Aux[A, R2],
     keysAux: Keys.Aux[R2, R3],
-    withDefaultValue: Lazy[WithDefaultValue[D, R2]]
+    withDefaultValue: Lazy[WithDefaultValueAndNameMapping[D, R2]],
+    nameMapping: NameMapping[A] = NameMapping.empty[A]
   ): CaseClassParser[D, A] = {
     val values = defaultAux()
     val keys = keysAux()
     implicit val defaultValueMap = getDefaultValueMap(values, keys)
-    val r2CaseClassParser = withDefaultValue.value(defaultValueMap)
+    val r2CaseClassParser = withDefaultValue.value(defaultValueMap, NameMapping.fromNameMapping[R2](nameMapping))
     (data: D) => {
       val r2Try = r2CaseClassParser.parse(data)
       r2Try map labelledGeneric.from
